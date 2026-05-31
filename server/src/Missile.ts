@@ -64,6 +64,7 @@ export class Missile {
       id: this.id,
       pos: [this.pos.x, this.pos.y, this.pos.z],
       quat: [_quat.x, _quat.y, _quat.z, _quat.w],
+      targetId: this.targetId,
     };
   }
 }

@@ -7,6 +7,7 @@ import { Background } from './Background';
 import { CloudField } from './Clouds';
 import { Aircraft } from './Aircraft';
 import { Missiles } from './Missiles';
+import { MissileThreatLines } from './MissileThreatLines';
 import { Explosions } from './Explosions';
 import { ChaseCamera } from './ChaseCamera';
 import { TargetWaypoint } from './TargetWaypoint';
@@ -39,6 +40,7 @@ export function Scene() {
         <CloudField />
         <Fleet />
         <Missiles />
+        <MissileThreatLines />
         <Explosions />
         <TargetWaypoint />
         <ChaseCamera />

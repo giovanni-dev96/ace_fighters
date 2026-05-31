@@ -54,7 +54,7 @@ function MissileWarning() {
       if (warn <= 0) {
         setVisible(false);
       } else {
-        const freq = 2 + warn * 8; // Hz: faster blink as the missile closes in
+        const freq = 2; // Hz: steady blink twice per second whenever a missile is inbound
         setVisible(Math.sin(performance.now() * 0.001 * freq * Math.PI * 2) > 0);
       }
       raf = requestAnimationFrame(loop);

@@ -22,7 +22,7 @@ export const MAX_SPEED = 25; // units/sec ceiling while accelerating
 export const ACCELERATION = 25; // units/sec^2 toward MAX while accelerating
 export const SPEED_DECAY = 15; // units/sec^2 back toward MINIMUM_SPEED when not
 
-export const COLLISION_HIT_MIN_DIST = 0.75; // units
+export const COLLISION_HIT_MIN_DIST = 0.85; // units
 export const COLLISION_HIT_MIN_DIST_SQ = COLLISION_HIT_MIN_DIST * COLLISION_HIT_MIN_DIST;
 
 // Missiles are faster than planes, but turn slower so a sharp maneuver can make them overshoot.
@@ -95,14 +95,14 @@ export interface BotProfile {
   leadFactor: number; // 0 = aim at current pos, 1 = full intercept lead
 }
 
-const BASE_BOT_REACTIONTIME = 4.0 // INVERSE
+const BASE_BOT_REACTIONTIME = 3.0 // INVERSE
 const BASE_BOT_AIMERROR = 3.0 // INVERSE
 const BASE_BOT_STEERGAIN = 0.25
 const BASE_BOT_CONEGRACE = 1.0
 const BASE_BOT_FIRECD = 1.0
-const BASE_BOT_THINKINTERVAL = 3.0 // INVERSE
-const BASE_BOT_EVADETHREAT = 5.0 // INVERSE 
-const BASE_BOT_LEADFACTOR = 0.5
+const BASE_BOT_THINKINTERVAL = 2.0 // INVERSE
+const BASE_BOT_EVADETHREAT = 3.0 // INVERSE 
+const BASE_BOT_LEADFACTOR = 0.75
 
 export const BOT_PROFILES: Record<BotDifficulty, BotProfile> = {
     rookie: { 

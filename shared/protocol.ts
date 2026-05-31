@@ -21,6 +21,8 @@ export interface MissileSnapshot {
   id: string;
   pos: Vec3;
   quat: Quat;
+  /** Locked target's player id, or null if fired dumb. Lets clients flag inbound threats. */
+  targetId: string | null;
 }
 
 export interface LeaderboardEntry {
