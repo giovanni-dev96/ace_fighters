@@ -12,6 +12,7 @@ import {
   type AircraftSpec,
 } from '../../shared/constants';
 import type { InputState, PlayerSnapshot } from '../../shared/protocol';
+import type { BotController } from './BotController';
 import { FORWARD, spawnTransform } from './util';
 
 const ZERO_INPUT: InputState = { pitch: 0, roll: 0, yaw: 0, accelerate: false };
@@ -50,6 +51,10 @@ export class Player {
 
   kills = 0;
   deaths = 0;
+
+  /** AI control: true for server-spawned bots, which carry a controller. */
+  isBot = false;
+  bot: BotController | null = null;
 
   input: InputState = { ...ZERO_INPUT };
 
@@ -97,9 +102,9 @@ export class Player {
 
     // Local-axis angular integration (pitch about X, yaw about Y, roll about Z).
     // Yaw/roll are negated so +input yaws/rolls to the player's right (nose -Z, right +X).
-    if (pitch) this.quat.multiply(_dq.setFromAxisAngle(AXIS_X, pitch * turn * dt));
-    if (yaw) this.quat.multiply(_dq.setFromAxisAngle(AXIS_Y, -yaw * turn * dt));
-    if (roll) this.quat.multiply(_dq.setFromAxisAngle(AXIS_Z, -roll * turn * dt));
+    if (pitch) this.quat.multiply(_dq.setFromAxisAngle(AXIS_X, 1.25 * pitch * turn * dt));
+    if (yaw) this.quat.multiply(_dq.setFromAxisAngle(AXIS_Y, -0.6 * yaw * turn * dt));
+    if (roll) this.quat.multiply(_dq.setFromAxisAngle(AXIS_Z, -1.5 * roll * turn * dt));
     this.quat.normalize();
 
     // Speed: accelerate toward MAX while held, decay back to the floor otherwise.

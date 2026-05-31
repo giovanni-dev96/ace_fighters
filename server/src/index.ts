@@ -37,7 +37,7 @@ wss.on('connection', (ws: WebSocket) => {
     switch (msg.t) {
       case 'createGame': {
         if (session) leave();
-        const created = manager.createSession(send);
+        const created = manager.createSession(send, { bots: msg.bots, difficulty: msg.difficulty });
         session = created.session;
         player = created.player;
         send({ t: 'created', hash: session.hash, selfId: player.id });

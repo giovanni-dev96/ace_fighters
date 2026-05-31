@@ -55,7 +55,7 @@ export function Aircraft({ id, aircraft, isSelf }: { id: string; aircraft: Aircr
     const yawRate = _prevFwd.x * _fwd.z - _prevFwd.z * _fwd.x; // y-component of cross(prev, cur)
     const pitchRate = _fwd.y - _prevFwd.y;
     prevFwd.current.copy(_fwd);
-    const targetRoll = MathUtils.clamp((yawRate / Math.max(dt, 1e-3)) * BANK_GAIN, -0.7, 0.7);
+    const targetRoll = MathUtils.clamp((-yawRate / Math.max(dt, 1e-3)) * BANK_GAIN, -0.7, 0.7);
     const targetPitch = MathUtils.clamp((pitchRate / Math.max(dt, 1e-3)) * PITCH_GAIN, -0.4, 0.4);
     const b = 1 - Math.exp(-8 * dt);
     inr.rotation.z = MathUtils.lerp(inr.rotation.z, targetRoll, b);

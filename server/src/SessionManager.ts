@@ -2,18 +2,23 @@ import { Session } from './Session';
 import { generateHash } from './util';
 import type { Player } from './Player';
 import type { ServerMessage } from '../../shared/protocol';
+import { DEFAULT_BOT_DIFFICULTY, type BotDifficulty } from '../../shared/constants';
 
 type Send = (msg: ServerMessage) => void;
 
 export class SessionManager {
   private readonly sessions = new Map<string, Session>();
 
-  createSession(send: Send): { session: Session; player: Player } {
+  createSession(
+    send: Send,
+    opts?: { bots?: number; difficulty?: BotDifficulty },
+  ): { session: Session; player: Player } {
     let hash = generateHash();
     while (this.sessions.has(hash)) hash = generateHash();
     const session = new Session(hash, (h) => this.sessions.delete(h));
     this.sessions.set(hash, session);
     const player = session.addPlayer(send);
+    if (opts?.bots) session.spawnBots(opts.bots, opts.difficulty ?? DEFAULT_BOT_DIFFICULTY);
     return { session, player };
   }
 

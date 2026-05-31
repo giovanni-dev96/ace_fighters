@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AIRCRAFT_LIST, type AircraftType } from '../../../shared/constants';
+import { AIRCRAFT_LIST, MAX_BOTS, type AircraftType, type BotDifficulty } from '../../../shared/constants';
 import { useStore } from '../store';
 
 function ConnectScreen() {
@@ -17,14 +17,61 @@ function ConnectScreen() {
 }
 
 function MainMenu() {
-  const createGame = useStore((s) => s.createGame);
+  const goNew = () => useStore.setState({ screen: 'newGame', error: null });
   const goJoin = () => useStore.setState({ screen: 'joinInput', error: null });
   return (
     <div className="panel">
       <div className="title">MAIN MENU</div>
       <div className="subtitle">CHOOSE A SESSION</div>
-      <button className="btn" onClick={createGame}>NEW GAME</button>
+      <button className="btn" onClick={goNew}>NEW GAME</button>
       <button className="btn secondary" onClick={goJoin}>JOIN GAME</button>
+    </div>
+  );
+}
+
+const DIFFICULTIES: { value: BotDifficulty; label: string }[] = [
+  { value: 'rookie', label: 'Rookie' },
+  { value: 'veteran', label: 'Veteran' },
+  { value: 'ace', label: 'Ace' },
+];
+
+function NewGameScreen() {
+  const createGame = useStore((s) => s.createGame);
+  const back = () => useStore.setState({ screen: 'menu', error: null });
+  const [bots, setBots] = useState(3);
+  const [difficulty, setDifficulty] = useState<BotDifficulty>('veteran');
+
+  return (
+    <div className="panel" style={{ minWidth: 420 }}>
+      <div className="title">NEW GAME</div>
+      <div className="subtitle">SET UP THE ARENA</div>
+
+      <div className="label">Enemy AI — {bots}</div>
+      <input
+        className="field"
+        type="range"
+        min={0}
+        max={MAX_BOTS}
+        step={1}
+        value={bots}
+        onChange={(e) => setBots(Number(e.target.value))}
+      />
+
+      <div className="label">Bot difficulty</div>
+      <div className="aircraft-grid">
+        {DIFFICULTIES.map((d) => (
+          <div
+            key={d.value}
+            className={`aircraft-card ${difficulty === d.value ? 'selected' : ''}`}
+            onClick={() => setDifficulty(d.value)}
+          >
+            <h3>{d.label}</h3>
+          </div>
+        ))}
+      </div>
+
+      <button className="btn" onClick={() => createGame(bots, difficulty)}>CREATE</button>
+      <button className="btn secondary" onClick={back}>BACK</button>
     </div>
   );
 }
@@ -103,6 +150,7 @@ export function Menu() {
     <div className="overlay menu">
       {screen === 'connect' && <ConnectScreen />}
       {screen === 'menu' && <MainMenu />}
+      {screen === 'newGame' && <NewGameScreen />}
       {screen === 'joinInput' && <JoinGameScreen />}
       {screen === 'loadout' && <LoadoutScreen />}
     </div>

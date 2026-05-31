@@ -39,3 +39,9 @@ flat fallback color is used (no crash).
 Gameplay constants (speeds, turn rates, missile behavior, lock cone) are all in
 `shared/constants.ts`. Flight-control signs and the model "forward" axis assume the
 GLBs face local `-Z`; adjust there if a model flies tail-first.
+
+
+
+
+There is a feature in the project that makes a "WARNING MISSILE LOCK" message blink on the screen according to missile proximity. I want to change this feature. The message will still blink when there is one or more missiles incoming to the player. However it should not blink according to proximity anymore, instead make it blink twice a second. 
+For each missile incoming add a red line to indicate missile direction and distance. Considering an imaginary vector from the plane's origin to the missile origin: the red line should start 1 unit from the plane and end at a maximum of 2 units from the plane. The length of the line is proportional to the distance between the missile and the plane. When the missile is at maximum threat detection distance (130 units) the red line end is at maximum length. When the missile is at length zero, the red line is zero as well. There is a "sketch.png" to guide this feature.

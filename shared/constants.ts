@@ -26,8 +26,8 @@ export const COLLISION_HIT_MIN_DIST = 0.75; // units
 export const COLLISION_HIT_MIN_DIST_SQ = COLLISION_HIT_MIN_DIST * COLLISION_HIT_MIN_DIST;
 
 // Missiles are faster than planes, but turn slower so a sharp maneuver can make them overshoot.
-export const MISSILE_SPEED = 20; // units/sec
-export const MISSILE_TURN_RATE = 0.6; // rad/sec steering cap toward target
+export const MISSILE_SPEED = 50; // units/sec
+export const MISSILE_TURN_RATE = 0.8; // rad/sec steering cap toward target
 export const MISSILE_WARN_RANGE = 130; // units within which an inbound tracker raises the warning
 
 export type Maneuverability = 'low' | 'balanced' | 'high';
@@ -75,3 +75,69 @@ export const AIRCRAFT_LIST: AircraftSpec[] = [AIRCRAFT.su30, AIRCRAFT.f16, AIRCR
 // Chase camera sits behind (+Z local) and slightly above the model, looking forward.
 export const CAMERA_OFFSET: readonly [number, number, number] = [0, 0.7, 4.2];
 export const CAMERA_LOOK_AHEAD = 6; // units ahead of the plane the camera aims at
+
+// ---------------------------------------------------------------------------
+// Enemy AI (bots)
+// ---------------------------------------------------------------------------
+
+export const MAX_BOTS = 8;
+
+export type BotDifficulty = 'rookie' | 'veteran' | 'ace';
+
+export interface BotProfile {
+  reactionTime: number; // s of input lag (new inputs are eased in over this time)
+  aimError: number; // rad of jitter added to the aim direction
+  steerGain: number; // P-gain applied to steering error before clamping to [-1,1]
+  coneGrace: number; // extra radians beyond the lock cone within which the bot will still fire
+  fireCooldown: number; // s between shots
+  thinkInterval: number; // s between high-level re-decisions (target + state)
+  evadeThreat: number; // inbound-missile proximity (0..1) that triggers Evade
+  leadFactor: number; // 0 = aim at current pos, 1 = full intercept lead
+}
+
+const BASE_BOT_REACTIONTIME = 4.0 // INVERSE
+const BASE_BOT_AIMERROR = 3.0 // INVERSE
+const BASE_BOT_STEERGAIN = 0.25
+const BASE_BOT_CONEGRACE = 1.0
+const BASE_BOT_FIRECD = 1.0
+const BASE_BOT_THINKINTERVAL = 3.0 // INVERSE
+const BASE_BOT_EVADETHREAT = 5.0 // INVERSE 
+const BASE_BOT_LEADFACTOR = 0.5
+
+export const BOT_PROFILES: Record<BotDifficulty, BotProfile> = {
+    rookie: { 
+      reactionTime: 0.5 * BASE_BOT_REACTIONTIME,
+      aimError: 0.12 * BASE_BOT_AIMERROR,
+      steerGain: 1.5 * BASE_BOT_STEERGAIN,
+      coneGrace: 0.0 * BASE_BOT_CONEGRACE,
+      fireCooldown: 1.6 * BASE_BOT_FIRECD,
+      thinkInterval: 1.5 * BASE_BOT_THINKINTERVAL,
+      evadeThreat: 0.7 * BASE_BOT_EVADETHREAT,
+      leadFactor: 0.0 * BASE_BOT_LEADFACTOR 
+    },
+    veteran: { 
+      reactionTime: 0.25 * BASE_BOT_REACTIONTIME,
+      aimError: 0.05 * BASE_BOT_AIMERROR,
+      steerGain: 2.5 * BASE_BOT_STEERGAIN,
+      coneGrace: 0.05 * BASE_BOT_CONEGRACE,
+      fireCooldown: 1.0 * BASE_BOT_FIRECD,
+      thinkInterval: 0.8 * BASE_BOT_THINKINTERVAL,
+      evadeThreat: 0.5 * BASE_BOT_EVADETHREAT,
+      leadFactor: 0.6 * BASE_BOT_LEADFACTOR, 
+    },
+    ace: { 
+      reactionTime: 0.08 * BASE_BOT_REACTIONTIME,
+      aimError: 0.01 * BASE_BOT_AIMERROR,
+      steerGain: 3.5 * BASE_BOT_STEERGAIN,
+      coneGrace: 0.1 * BASE_BOT_CONEGRACE,
+      fireCooldown: 0.8 * BASE_BOT_FIRECD,
+      thinkInterval: 0.3 * BASE_BOT_THINKINTERVAL,
+      evadeThreat: 0.4 * BASE_BOT_EVADETHREAT,
+      leadFactor: 1.0 * BASE_BOT_LEADFACTOR 
+    },
+  };
+
+export const BOT_FIRE_MAX_RANGE = 90; // units; beyond this the slow missile loses the race
+export const BOT_BOUNDARY_RECOVER = 160; // units; ‖pos‖ at which the Recover state turns the bot back
+export const BOT_SEPARATION_DIST = 8; // units; bots steer apart within this radius to avoid no-score collisions
+export const DEFAULT_BOT_DIFFICULTY: BotDifficulty = 'veteran';

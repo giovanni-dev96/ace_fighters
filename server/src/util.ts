@@ -50,3 +50,12 @@ export function generateHash(): string {
   const n = Math.floor(Math.random() * 90) + 10;
   return `${a}-${b}-${n}`;
 }
+
+const BOT_NAMES = ['REAPER', 'GHOST', 'MAVERICK', 'ICEMAN', 'VENOM', 'SABER', 'ROGUE', 'BANDIT', 'COBRA', 'WIDOW', 'SPECTER', 'HAVOC', 'JESTER', 'SLAYER', 'NOMAD', 'TALON'];
+
+/** Callsign for a bot pilot, e.g. "REAPER-42". */
+export function generateBotName(): string {
+  const base = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+  const n = Math.floor(Math.random() * 90) + 10;
+  return `${base}-${n}`;
+}

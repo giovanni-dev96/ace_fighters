@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type {
   AircraftType,
+  BotDifficulty,
 } from '../../shared/constants';
 import type {
   LeaderboardEntry,
@@ -12,7 +13,7 @@ import type {
 import { connectSocket, sendMessage, closeSocket } from './net/connection';
 
 export type ConnState = 'disconnected' | 'connecting' | 'connected';
-export type Screen = 'connect' | 'menu' | 'joinInput' | 'loadout' | 'ingame' | 'ended';
+export type Screen = 'connect' | 'menu' | 'newGame' | 'joinInput' | 'loadout' | 'ingame' | 'ended';
 
 export interface PlayerMeta {
   id: string;
@@ -58,7 +59,7 @@ interface GameState {
   connect: () => void;
   addExplosion: (pos: Vec3, kind: ExplosionKind) => void;
   removeExplosion: (id: number) => void;
-  createGame: () => void;
+  createGame: (bots: number, difficulty: BotDifficulty) => void;
   joinGame: (hash: string) => void;
   setLoadout: (name: string, aircraft: AircraftType) => void;
   leave: () => void;
@@ -91,9 +92,9 @@ export const useStore = create<GameState>((set, get) => ({
     connectSocket();
   },
 
-  createGame: () => {
+  createGame: (bots: number, difficulty: BotDifficulty) => {
     set({ error: null });
-    sendMessage({ t: 'createGame' });
+    sendMessage({ t: 'createGame', bots, difficulty });
   },
 
   joinGame: (hash: string) => {

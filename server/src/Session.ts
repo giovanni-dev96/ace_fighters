@@ -9,16 +9,23 @@ import {
   COLLISION_HIT_MIN_DIST_SQ,
   KILL_FEED_LENGTH,
   WIN_KILL_COUNT,
+  MAX_BOTS,
+  BOT_PROFILES,
   type AircraftType,
+  type BotDifficulty,
 } from '../../shared/constants';
 import type { ServerMessage, LeaderboardEntry, FeedEntry, InputState, ExplosionKind } from '../../shared/protocol';
 import { Player } from './Player';
 import { Missile } from './Missile';
+import { BotController } from './BotController';
+import { generateBotName } from './util';
 
 type Send = (msg: ServerMessage) => void;
 
 const WARN_RANGE_SQ = MISSILE_WARN_RANGE * MISSILE_WARN_RANGE;
+const BOT_AIRCRAFT: AircraftType[] = ['su30', 'f16', 'f15'];
 const _toTarget = new Vector3();
+const _threatDir = new Vector3();
 
 export class Session {
   readonly hash: string;
@@ -47,6 +54,20 @@ export class Session {
     return player;
   }
 
+  /** Spawn up to MAX_BOTS server-controlled pilots into the arena (GDD: Enemy AI). */
+  spawnBots(count: number, difficulty: BotDifficulty) {
+    const n = Math.max(0, Math.min(MAX_BOTS, Math.floor(count)));
+    const profile = BOT_PROFILES[difficulty];
+    for (let i = 0; i < n; i++) {
+      const bot = new Player(randomUUID());
+      bot.isBot = true;
+      // Spread bots across all three airframes for varied behavior.
+      bot.enterArena(`[AI] ${generateBotName()}`, BOT_AIRCRAFT[i % BOT_AIRCRAFT.length]);
+      bot.bot = new BotController(bot, profile);
+      this.players.set(bot.id, bot); // no sender: bots have no socket
+    }
+  }
+
   removePlayer(id: string) {
     const leaving = this.players.get(id);
     this.players.delete(id);
@@ -59,7 +80,9 @@ export class Session {
       }
     }
 
-    if (this.players.size === 0) this.dispose();
+    // Session lives only while a human is present; bots don't keep it alive.
+    const humans = [...this.players.values()].filter((p) => !p.isBot).length;
+    if (humans === 0) this.dispose();
   }
 
   private dispose() {
@@ -110,6 +133,22 @@ export class Session {
     const now = Date.now();
     const dt = Math.min(0.25, Math.max(0, (now - this.lastTick) / 1000));
     this.lastTick = now;
+
+    // Drive bots (server-side AI) before integrating flight, so their decisions
+    // become this tick's input. Bots perceive only the spawned roster + threats.
+    const spawned = [...this.players.values()].filter((p) => p.spawned);
+    if (spawned.some((p) => p.isBot)) {
+      for (const p of spawned) {
+        if (!p.isBot || !p.alive || !p.bot) continue;
+        const threat = this.botThreat(p);
+        p.bot.think(dt, {
+          players: spawned,
+          threatProximity: threat.proximity,
+          threatDir: threat.dir,
+          fire: (q) => this.fire(q),
+        });
+      }
+    }
 
     for (const p of this.players.values()) {
       if (!p.spawned) continue;
@@ -202,6 +241,29 @@ export class Session {
       const len = _toTarget.length();
       p.locked = len > 1e-4 && p.forward().dot(_toTarget.divideScalar(len)) >= MISSILE_LOCK_THRESHOLD;
     }
+  }
+
+  /** Closest inbound tracking missile for a bot: proximity (0..1) and incoming direction. */
+  private botThreat(player: Player): { proximity: number; dir: Vector3 | null } {
+    let best = 0;
+    let bestMissile: Missile | null = null;
+    for (const m of this.missiles) {
+      if (m.targetId !== player.id) continue;
+      const dSq = m.pos.distanceToSquared(player.pos);
+      if (dSq <= WARN_RANGE_SQ) {
+        const proximity = 1 - Math.sqrt(dSq) / MISSILE_WARN_RANGE;
+        if (proximity > best) {
+          best = proximity;
+          bestMissile = m;
+        }
+      }
+    }
+    if (!bestMissile) return { proximity: 0, dir: null };
+    _threatDir.copy(player.pos).sub(bestMissile.pos);
+    const len = _threatDir.length();
+    if (len > 1e-4) _threatDir.divideScalar(len);
+    else _threatDir.set(0, 0, 0);
+    return { proximity: best, dir: _threatDir };
   }
 
   /** Closest inbound tracking missile as 0..1 proximity for the warning HUD. */

@@ -1,5 +1,5 @@
 // Wire protocol shared by client and server. Pure types only.
-import type { AircraftType } from './constants';
+import type { AircraftType, BotDifficulty } from './constants';
 
 export type Vec3 = [number, number, number];
 export type Quat = [number, number, number, number]; // x, y, z, w
@@ -62,7 +62,7 @@ export interface InputState {
 }
 
 export type ClientMessage =
-  | { t: 'createGame' }
+  | { t: 'createGame'; bots?: number; difficulty?: BotDifficulty }
   | { t: 'joinGame'; hash: string }
   | { t: 'setLoadout'; name: string; aircraft: AircraftType }
   | { t: 'input'; input: InputState }
